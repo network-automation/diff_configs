@@ -1,6 +1,46 @@
 # Diff on Configs
 Examples of several diffs on Cisco NX-OS using the [nxos_config Ansible module](http://docs.ansible.com/ansible/latest/nxos_config_module.html).
 
+- [Check Mode](#running-config)
+- [Running-Config vs Startup-Config](#running-config-vs-startup-config)
+
+# Check Mode
+The full playbook for this example is located here: [check.yml](check.yml)
+
+When using the `src:` keyword with the [nxos_config module](http://docs.ansible.com/ansible/latest/nxos_config_module.html) it will merge the configuration provided in `src:` with the running-config on the target network host.  Ansible has a special `--check` flag where it will show you what "would" change but not actually change it.  In the following example there is a changed.txt file with two interfaces configured:
+```
+interface Ethernet1/4
+  no switchport
+  ip address 4.4.4.4/24
+interface Ethernet1/5
+  no switchport
+  ip address 5.5.5.5/24
+```
+For the following playbook output `Ethernet1/4` has already been configured, but `Ethernet1/5` *has not*.  When registering the output from the nxos_config module it will save any changes (the diff) to `registered_variable_name.updates`
+
+```
+[root@localhost difftests]# ansible-playbook check.yml --check
+
+PLAY [n9k] *******************************************************************
+
+TASK [Going to merge change.txt to running-config] ******************************************************************************
+changed: [n9k]
+
+TASK [the only config we need to merge is]
+******************************************************************************
+ok: [n9k] => {
+    "test_diff.updates": [
+        "interface Ethernet1/5",
+        "no switchport",
+        "ip address 5.5.5.5/24"
+    ]
+}
+
+PLAY RECAP
+******************************************************************************
+n9k                        : ok=2    changed=1    unreachable=0    failed=0
+```
+
 # Running-Config vs Startup-Config
 The full playbook for this example is located here: [running_vs_startup.yml](running_vs_startup.yml)
 

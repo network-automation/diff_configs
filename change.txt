@@ -1,0 +1,6 @@
+interface Ethernet1/4
+  no switchport
+  ip address 4.4.4.4/24
+interface Ethernet1/5
+  no switchport
+  ip address 5.5.5.5/24

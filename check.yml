@@ -1,0 +1,19 @@
+---
+- hosts: n9k
+  connection: local
+  gather_facts: no
+  vars:
+    provider:
+      username: "admin"
+      password: "Bullf00d"
+  tasks:
+  - name: Going to merge change.txt to running-config
+    nxos_config:
+      diff_against: running
+      provider: "{{ provider }}"
+      src: change.txt
+    register: test_diff
+
+  - name: the only config we need to merge is
+    debug:
+      var: test_diff.updates
