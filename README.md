@@ -3,8 +3,8 @@ Examples of several diffs on Cisco NX-OS using the [nxos_config Ansible module](
 
 - [Check Mode](#running-config) `--check`
 - [Running Config vs Startup Config](#running-config-vs-startup-config) `diff_against: startup`
-- [Running Config vs Intended Config](#running-config-vs-intended-config) `diff_against: intended`
 - [Changed Config vs Running Config](#changed-config-vs-running-config) `diff_against: running`
+- [Running Config vs Intended Config](#running-config-vs-intended-config) `diff_against: intended`
 
 # Check Mode
 The full playbook for this example is located here: [check.yml](check.yml)
@@ -23,13 +23,12 @@ For the following playbook output `Ethernet1/4` has already been configured, but
 ```
 [root@localhost difftests]# ansible-playbook check.yml --check
 
-PLAY [n9k] *******************************************************************
+PLAY [n9k] ********************************************************************
 
-TASK [Going to merge change.txt to running-config] ******************************************************************************
+TASK [Going to merge change.txt to running-config] ****************************
 changed: [n9k]
 
-TASK [the only config we need to merge is]
-******************************************************************************
+TASK [the only config we need to merge is]*************************************
 ok: [n9k] => {
     "test_diff.updates": [
         "interface Ethernet1/5",
@@ -86,7 +85,7 @@ It might be desired to save the output from the before and/or after config to a 
 
 The playbook can now output exactly just the 1 line:
 ```
-TASK [sanitized output "Lines added to running-config that are not present in startup-config"] ****************************************************************************
+TASK [sanitized output "Lines added to running-config that are not present in startup-config"] **
 ok: [n9k] => {
     "difference": [
         "  ip address 4.4.4.4/24"
@@ -95,7 +94,53 @@ ok: [n9k] => {
 ```
 This output gives no context but just shows one of various methods to possibly get the desired output in the format desired.
 
+# Changed Config vs Running Config
+The full playbook for this example is located here: [change_vs_running.yml](change_vs_running.yml)
+
+The difference between using `diff_against: running` and `--check` is that it will actually make the change to the config, but show the diff as it performs the change.  As of Ansible 2.4 the `--check` and the `--diff` cannot be run at the same time.
+
+```
+[root@localhost difftests]# ansible-playbook change_vs_running.yml --diff
+
+PLAY [n9k] ********************************************************************
+
+TASK [diff against the startup config] ****************************************
+--- before
++++ after
+@@ -49,6 +49,8 @@
+   no switchport
+   ip address 4.4.4.4/24
+ interface Ethernet1/5
++  no switchport
++  ip address 5.5.5.5/24
+ interface Ethernet1/6
+ interface Ethernet1/7
+ interface Ethernet1/8
+
+changed: [n9k]
+
+TASK [Take config we are merging and sets it to a variable called *before*] ***
+ok: [n9k]
+
+TASK [This takes the running config and sets it to a variable called *after*] *
+ok: [n9k]
+
+TASK [Create a line-to-line diff of change-config to startup-config] **********
+ok: [n9k]
+
+TASK [sanitized output "Lines added to running-config that are not present in change.txt"] *
+ok: [n9k] => {
+    "difference": [
+        "  ip address 5.5.5.5/24"
+    ]
+}
+
+PLAY RECAP ********************************************************************
+n9k                        : ok=5    changed=1    unreachable=0    failed=0
+```
+
 # Running Config vs Intended Config
+The full playbook for this example is located here: [running_vs_intended.yml](running_vs_intended.yml)
 
 To use compare the running config to an intended config you must use `diff_against: intended`.  This actually compares the running config to the intended config (which is the opposite of the rest of the diff modes, including just doing a check).  This means it is actually assuming intended_config is the final state of the box,  e.g. if the `src: change.txt` was just a couple interfaces you wanted to merge (as in the other examples) the diff would show that change.txt was missing a lot of config (including every other interface that was not part of `change.txt`) vs showing what *would* change (with a `--check`).  Most likely `intended` would be used with a previous backup, a templated file or some other *complete* config vs a piece of config being merged into the running config.
 
@@ -119,9 +164,9 @@ The playbook will now show the change of the running config VS the intended conf
 ```
 [root@localhost difftests]# ansible-playbook intended_vs_running.yml --diff
 
-PLAY [n9k] ***********************************************************************************************************************************************************
+PLAY [n9k] *******************************************************************
 
-TASK [diff against the startup config] *******************************************************************************************************************************
+TASK [diff against the startup config] ***************************************
 --- before
 +++ after
 @@ -50,8 +50,6 @@
@@ -136,53 +181,8 @@ TASK [diff against the startup config] *****************************************
 
 changed: [n9k]
 
-PLAY RECAP ***********************************************************************************************************************************************************
+PLAY RECAP *******************************************************************
 n9k                        : ok=1    changed=1    unreachable=0    failed=0
-```
-
-# Changed Config vs Running Config
-The full playbook for this example is located here: [change_vs_running.yml](change_vs_running.yml)
-
-The difference between using `diff_against: running` and `--check` is that it will actually make the change to the config, but show the diff as it performs the change.  As of Ansible 2.4 the `--check` and the `--diff` cannot be run at the same time.
-
-```
-[root@localhost difftests]# ansible-playbook change_vs_running.yml --diff
-
-PLAY [n9k] ***********************************************************************************************************************************************************
-
-TASK [diff against the startup config] *******************************************************************************************************************************
---- before
-+++ after
-@@ -49,6 +49,8 @@
-   no switchport
-   ip address 4.4.4.4/24
- interface Ethernet1/5
-+  no switchport
-+  ip address 5.5.5.5/24
- interface Ethernet1/6
- interface Ethernet1/7
- interface Ethernet1/8
-
-changed: [n9k]
-
-TASK [Take config we are merging and sets it to a variable called *before*] ******************************************************************************************
-ok: [n9k]
-
-TASK [This takes the running config and sets it to a variable called *after*] ****************************************************************************************
-ok: [n9k]
-
-TASK [Create a line-to-line diff of change-config to startup-config] *************************************************************************************************
-ok: [n9k]
-
-TASK [sanitized output "Lines added to running-config that are not present in change.txt"] ***************************************************************************
-ok: [n9k] => {
-    "difference": [
-        "  ip address 5.5.5.5/24"
-    ]
-}
-
-PLAY RECAP ***********************************************************************************************************************************************************
-n9k                        : ok=5    changed=1    unreachable=0    failed=0
 ```
 
  ---
