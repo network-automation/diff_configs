@@ -1,0 +1,14 @@
+---
+- hosts: n9k
+  connection: local
+  gather_facts: no
+  vars:
+    provider:
+      username: "admin"
+      password: "Bullf00d"
+  tasks:
+  - name: diff the running against the intended config
+    nxos_config:
+      diff_against: intended
+      provider: "{{ provider }}"
+      intended_config: "{{ lookup('file', 'backup.txt') }}"

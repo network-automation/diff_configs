@@ -1,0 +1,45 @@
+i---
+- hosts: n9k
+  connection: local
+  gather_facts: no
+  vars:
+    provider:
+      username: "admin"
+      password: "Bullf00d"
+  tasks:
+  - name: diff the change/merged config against the running config
+    nxos_config:
+      diff_against: running
+      provider: "{{ provider }}"
+      src: change.txt
+    register: test_diff
+
+#  - name: debug the test_diff
+#    debug:
+#      var: test_diff
+
+  - name: Take config we are merging and sets it to a variable called *before*
+    set_fact: before="{{ test_diff['diff']['before'].split('\n')}}"
+    when: test_diff['diff'] is defined
+
+#  - name: debug before
+#    debug:
+#      var: before
+#    when: test_diff['diff'] is defined
+
+  - name: This takes the running config and sets it to a variable called *after*
+    set_fact: after="{{ test_diff['diff']['after'].split('\n')}}"
+    when: test_diff['diff'] is defined
+
+# - name: debug after
+#   debug:
+#     var: after
+
+  - name: Create a line-to-line diff of change-config to startup-config
+    set_fact: difference="{{ after | difference(before) }}"
+    when: test_diff['diff'] is defined
+
+  - name: sanitized output "Lines added to running-config that are not present in change.txt"
+    debug:
+      var: difference
+    when: test_diff['diff'] is defined

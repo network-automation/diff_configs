@@ -1,0 +1,13 @@
+---
+- hosts: n9k
+  connection: local
+  gather_facts: no
+  vars:
+    provider:
+      username: "admin"
+      password: "Bullf00d"
+  tasks:
+  - name: create a backup
+    nxos_config:
+      backup: yes
+      provider: "{{provider}}"
