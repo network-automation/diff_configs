@@ -42,7 +42,9 @@ PLAY RECAP
 n9k                        : ok=2    changed=1    unreachable=0    failed=0
 ```
 
-# Running-Config vs Startup-Config
+# Running Config vs Startup Config
+This diff answers: What does the running config have, that the startup config does not.
+
 The full playbook for this example is located here: [running_vs_startup.yml](running_vs_startup.yml)
 
 It might be beneficial to see if the running-config is different from the startup-config (so if a power-loss or reboot was performed the switch and/or router would be in the same state it was prior.)  To compare the running-config to the startup-config with the [nxos_config module](http://docs.ansible.com/ansible/latest/nxos_config_module.html) use the `diff_against: startup`
@@ -95,6 +97,8 @@ ok: [n9k] => {
 This output gives no context but just shows one of various methods to possibly get the desired output in the format desired.
 
 # Changed Config vs Running Config
+This diff answers: What does the config I want to merge/add have, that the running config does not.
+
 The full playbook for this example is located here: [change_vs_running.yml](change_vs_running.yml)
 
 The difference between using `diff_against: running` and `--check` is that it will actually make the change to the config, but show the diff as it performs the change.  As of Ansible 2.4 the `--check` and the `--diff` cannot be run at the same time.
@@ -140,9 +144,11 @@ n9k                        : ok=5    changed=1    unreachable=0    failed=0
 ```
 
 # Running Config vs Intended Config
+This diff answers: What does the running config have different, than the intended configuration file.
+
 The full playbook for this example is located here: [running_vs_intended.yml](running_vs_intended.yml)
 
-To use compare the running config to an intended config you must use `diff_against: intended`.  This actually compares the running config to the intended config (which is the opposite of the rest of the diff modes, including just doing a check).  This means it is actually assuming intended_config is the final state of the box,  e.g. if the `src: change.txt` was just a couple interfaces you wanted to merge (as in the other examples) the diff would show that change.txt was missing a lot of config (including every other interface that was not part of `change.txt`) vs showing what *would* change (with a `--check`).  Most likely `intended` would be used with a previous backup, a templated file or some other *complete* config vs a piece of config being merged into the running config.
+To use compare the running config to an intended config you must use `diff_against: intended`.  This actually compares the running config to the intended config (which is the opposite of the rest of the diff modes, including just doing a check).  By *opposite* this means it is actually assuming intended_config is the final state of the box,  e.g. if the `src: change.txt` was just a couple interfaces you wanted to merge (as in the other examples) the diff would show that change.txt was missing a lot of config (including every other interface that was not part of `change.txt`) vs showing what *would* change (with a `--check`).  Most likely `intended` would be used with a previous backup, a templated file or some other *complete* config vs a piece of config being merged into the running config.
 
 There is a [backup.yml](backup.yml) in this repo used for this example.
 ```
