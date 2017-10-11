@@ -1,4 +1,4 @@
-i---
+---
 - hosts: n9k
   connection: local
   gather_facts: no
